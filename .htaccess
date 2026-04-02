@@ -1,0 +1,36 @@
+# ──────────────────────────────────────────────
+# Root .htaccess – Student Home Visit Map System
+# ──────────────────────────────────────────────
+
+Options -Indexes
+
+# ── Block sensitive files from web access ──────
+<FilesMatch "^\.env">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+<FilesMatch "^(\.gitignore|\.git|composer\.json|composer\.lock|package\.json|README\.md)$">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+# ── Rewrite engine ─────────────────────────────
+RewriteEngine On
+
+# Redirect root → public landing page
+RewriteRule ^$ public/index.php [R=302,L]
+
+# Block direct access to includes/
+RewriteRule ^includes/ - [F,L]
+
+# ── Character encoding ─────────────────────────
+AddDefaultCharset UTF-8
+
+# ซ่อน .php และ .html
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.php -f
+RewriteRule ^([^/]+)/?$ $1.php [L]
+
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.html -f
+RewriteRule ^([^/]+)/?$ $1.html [L]
