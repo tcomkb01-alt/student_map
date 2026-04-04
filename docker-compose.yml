@@ -1,0 +1,56 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - uploads:/var/www/html/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DB_HOST=db
+      - DB_NAME=${DB_NAME:-student_map}
+      - DB_USER=${DB_USER:-student_map}
+      - DB_PASS=${DB_PASS:-secret}
+      - DB_CHARSET=${DB_CHARSET:-utf8mb4}
+      - MAP_PASSWORD=${MAP_PASSWORD:-map123}
+      - APP_NAME=${APP_NAME:-ระบบแผนที่เยี่ยมบ้านนักเรียน}
+      - APP_VERSION=${APP_VERSION:-1.0.0}
+      - BASE_URL=${BASE_URL:-http://localhost:8080}
+      - MAX_FILE_SIZE_MB=${MAX_FILE_SIZE_MB:-5}
+
+  db:
+    image: mariadb:10.11
+    ports:
+      - "3307:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASS:-rootsecret}
+      MARIADB_DATABASE: ${DB_NAME:-student_map}
+      MARIADB_USER: ${DB_USER:-student_map}
+      MARIADB_PASSWORD: ${DB_PASS:-secret}
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./student_map.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: ${DB_ROOT_PASS:-rootsecret}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  dbdata:
+  uploads:
